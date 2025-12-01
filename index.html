@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Raga & Tala Explorer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        h1 {
+            text-align: center;
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-style: italic;
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .control-group {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        .control-group h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: border-color 0.3s;
+        }
+
+        select:hover {
+            border-color: #667eea;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: #764ba2;
+        }
+
+        .info {
+            font-size: 14px;
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .playback-controls {
+            text-align: center;
+            margin: 30px 0;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 18px;
+            border-radius: 50px;
+            cursor: pointer;
+            margin: 0 10px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .tala-display {
+            text-align: center;
+            margin: 30px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .tala-cycle {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .beat {
+            width: 50px;
+            height: 50px;
+            border: 3px solid #ddd;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 18px;
+            transition: all 0.1s;
+        }
+
+        .beat.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: #667eea;
+            transform: scale(1.2);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.6);
+        }
+
+        .beat.sam {
+            border-color: #e74c3c;
+            font-weight: bold;
+        }
+
+        .keyboard {
+            margin: 30px 0;
+        }
+
+        .keyboard h3 {
+            text-align: center;
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+
+        .notes {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .note-btn {
+            min-width: 70px;
+            padding: 20px 15px;
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .note-btn:hover {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            transform: translateY(-3px);
+        }
+
+        .note-btn:active {
+            transform: translateY(0) scale(0.95);
+        }
+
+        .note-btn.playing {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .tempo-control {
+            text-align: center;
+            margin: 20px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .tempo-control label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            max-width: 400px;
+            margin: 10px 0;
+        }
+
+        .tempo-value {
+            font-size: 24px;
+            color: #764ba2;
+            font-weight: bold;
+        }
+
+        @media (max-width: 768px) {
+            .controls {
+                grid-template-columns: 1fr;
+            }
+
+            h1 {
+                font-size: 2em;
+            }
+
+            .note-btn {
+                min-width: 60px;
+                padding: 15px 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎵 Raga & Tala Explorer</h1>
+        <p class="subtitle">Explore the beauty of Indian Classical Music</p>
+
+        <div class="controls">
+            <div class="control-group">
+                <h3>Select Raga (Melody)</h3>
+                <select id="ragaSelect">
+                    <option value="yaman">Yaman (Kalyan Thaat)</option>
+                    <option value="bhairav">Bhairav</option>
+                    <option value="bhairavi">Bhairavi</option>
+                    <option value="kafi">Kafi</option>
+                </select>
+                <div class="info" id="ragaInfo"></div>
+            </div>
+
+            <div class="control-group">
+                <h3>Select Tala (Rhythm)</h3>
+                <select id="talaSelect">
+                    <option value="teental">Teental (16 beats)</option>
+                    <option value="jhaptaal">Jhaptaal (10 beats)</option>
+                    <option value="ektaal">Ektaal (12 beats)</option>
+                    <option value="rupak">Rupak (7 beats)</option>
+                    <option value="dadra">Dadra (6 beats)</option>
+                </select>
+                <div class="info" id="talaInfo"></div>
+            </div>
+        </div>
+
+        <div class="tempo-control">
+            <label for="tempoSlider">Tempo (BPM)</label>
+            <input type="range" id="tempoSlider" min="40" max="180" value="80" step="5">
+            <div class="tempo-value" id="tempoValue">80 BPM</div>
+        </div>
+
+        <div class="playback-controls">
+            <button id="playBtn">▶ Play Pattern</button>
+            <button id="stopBtn" disabled>⏹ Stop</button>
+            <button id="metronomeBtn" style="background: linear-gradient(135deg, #34495e 0%, #2c3e50 100%);">🔇 Metronome Off</button>
+        </div>
+
+        <div class="tala-display">
+            <h3>Tala Cycle</h3>
+            <div class="tala-cycle" id="talaCycle"></div>
+        </div>
+
+        <div class="keyboard">
+            <h3>Interactive Keyboard - Click to Play Notes</h3>
+            <div class="notes" id="notesKeyboard"></div>
+        </div>
+    </div>
+
+    <script>
+        // Web Audio API setup
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+        // Raga definitions with note patterns (swaras) and melodic phrases
+        // Phrases contain: {note: index, duration: beats, accent: volume boost}
+        const ragas = {
+            yaman: {
+                name: 'Yaman',
+                notes: ['Sa', 'Re', 'Ga', 'Ma#', 'Pa', 'Dha', 'Ni'],
+                frequencies: [261.63, 293.66, 329.63, 369.99, 392.00, 440.00, 493.88], // C D E F# G A B
+                description: 'Evening raga, Kalyan thaat. Peaceful and devotional.',
+                info: 'Time: Evening (6-9 PM) | Mood: Peaceful, devotional',
+                phrases: [
+                    // Pakad (signature phrase): Ni Re Ga, Ma# Dha Ni, Re Sa - Total: 16 beats
+                    {note: 6, duration: 0.5, accent: 1.2}, // Ni
+                    {note: 1, duration: 0.5, accent: 1.0}, // Re
+                    {note: 2, duration: 1.0, accent: 1.0}, // Ga
+                    {note: 3, duration: 1.0, accent: 1.0}, // Ma#
+                    {note: 4, duration: 0.5, accent: 0.8}, // Pa (quick)
+                    {note: 5, duration: 1.5, accent: 1.0}, // Dha
+                    {note: 6, duration: 1.0, accent: 1.0}, // Ni
+                    {note: null, duration: 0.5},           // rest
+                    {note: 1, duration: 1.0, accent: 1.0}, // Re
+                    {note: 0, duration: 2.0, accent: 1.2}, // Sa (hold)
+                    {note: 2, duration: 0.5, accent: 1.0}, // Ga
+                    {note: 4, duration: 1.0, accent: 1.0}, // Pa
+                    {note: 5, duration: 0.5, accent: 0.8}, // Dha
+                    {note: 3, duration: 1.0, accent: 1.0}, // Ma#
+                    {note: 4, duration: 2.0, accent: 1.1}, // Pa (resolve)
+                    {note: null, duration: 1.5},           // rest before next cycle
+                ]
+            },
+            bhairav: {
+                name: 'Bhairav',
+                notes: ['Sa', 'Re♭', 'Ga', 'Ma', 'Pa', 'Dha♭', 'Ni'],
+                frequencies: [261.63, 277.18, 329.63, 349.23, 392.00, 415.30, 493.88], // C Db E F G Ab B
+                description: 'Morning raga. Serious and devotional.',
+                info: 'Time: Early Morning (5-8 AM) | Mood: Serious, devotional',
+                phrases: [
+                    // Pakad: Sa Re♭ Ga Ma, Pa Dha♭ Ni Sa - Total: 16 beats
+                    {note: 0, duration: 1.5, accent: 1.3}, // Sa (strong opening)
+                    {note: 1, duration: 0.5, accent: 1.0}, // Re♭
+                    {note: 2, duration: 1.0, accent: 1.0}, // Ga
+                    {note: null, duration: 0.5},           // rest
+                    {note: 3, duration: 1.5, accent: 1.1}, // Ma
+                    {note: 4, duration: 1.0, accent: 1.0}, // Pa
+                    {note: 5, duration: 1.0, accent: 1.0}, // Dha♭
+                    {note: 6, duration: 0.5, accent: 0.9}, // Ni (quick)
+                    {note: 0, duration: 2.0, accent: 1.2}, // Sa (hold)
+                    {note: 6, duration: 0.5, accent: 1.0}, // Ni
+                    {note: 5, duration: 1.0, accent: 1.0}, // Dha♭
+                    {note: 4, duration: 1.5, accent: 1.1}, // Pa
+                    {note: 2, duration: 1.0, accent: 1.0}, // Ga
+                    {note: 1, duration: 0.5, accent: 0.9}, // Re♭
+                    {note: 0, duration: 2.0, accent: 1.2}, // Sa (resolve)
+                ]
+            },
+            bhairavi: {
+                name: 'Bhairavi',
+                notes: ['Sa', 'Re♭', 'Ga♭', 'Ma', 'Pa', 'Dha♭', 'Ni♭'],
+                frequencies: [261.63, 277.18, 311.13, 349.23, 392.00, 415.30, 466.16], // C Db Eb F G Ab Bb
+                description: 'Morning raga. Compassionate and pleading.',
+                info: 'Time: Morning | Mood: Compassionate, emotional',
+                phrases: [
+                    // Emotional, flowing phrases - Total: 16 beats
+                    {note: 0, duration: 1.5, accent: 1.2}, // Sa
+                    {note: 2, duration: 0.5, accent: 1.0}, // Ga♭
+                    {note: 3, duration: 1.0, accent: 1.0}, // Ma
+                    {note: 4, duration: 0.5, accent: 0.8}, // Pa
+                    {note: null, duration: 0.5},           // rest
+                    {note: 5, duration: 1.5, accent: 1.1}, // Dha♭
+                    {note: 3, duration: 1.0, accent: 1.0}, // Ma
+                    {note: 2, duration: 1.0, accent: 1.0}, // Ga♭
+                    {note: 1, duration: 1.0, accent: 1.0}, // Re♭
+                    {note: 0, duration: 2.0, accent: 1.3}, // Sa (hold)
+                    {note: 6, duration: 0.5, accent: 0.9}, // Ni♭
+                    {note: 5, duration: 1.0, accent: 1.0}, // Dha♭
+                    {note: 4, duration: 1.0, accent: 1.0}, // Pa
+                    {note: 3, duration: 1.0, accent: 1.0}, // Ma
+                    {note: 1, duration: 0.5, accent: 0.9}, // Re♭
+                    {note: 0, duration: 2.0, accent: 1.2}, // Sa (resolve)
+                ]
+            },
+            kafi: {
+                name: 'Kafi',
+                notes: ['Sa', 'Re', 'Ga♭', 'Ma', 'Pa', 'Dha', 'Ni♭'],
+                frequencies: [261.63, 293.66, 311.13, 349.23, 392.00, 440.00, 466.16], // C D Eb F G A Bb
+                description: 'Monsoon raga. Romantic and soothing.',
+                info: 'Time: Monsoon season | Mood: Romantic, soothing',
+                phrases: [
+                    // Flowing, romantic phrases - Total: 16 beats
+                    {note: 4, duration: 1.0, accent: 1.0}, // Pa
+                    {note: 2, duration: 0.5, accent: 1.0}, // Ga♭
+                    {note: 3, duration: 1.0, accent: 1.0}, // Ma
+                    {note: 4, duration: 0.5, accent: 0.8}, // Pa
+                    {note: 5, duration: 1.5, accent: 1.1}, // Dha
+                    {note: null, duration: 0.5},           // rest
+                    {note: 4, duration: 1.0, accent: 1.0}, // Pa
+                    {note: 3, duration: 1.0, accent: 1.0}, // Ma
+                    {note: 2, duration: 1.5, accent: 1.0}, // Ga♭
+                    {note: 1, duration: 1.0, accent: 1.0}, // Re
+                    {note: 0, duration: 2.0, accent: 1.2}, // Sa (hold)
+                    {note: 6, duration: 1.0, accent: 0.9}, // Ni♭
+                    {note: 5, duration: 1.0, accent: 1.0}, // Dha
+                    {note: 4, duration: 1.0, accent: 1.0}, // Pa
+                    {note: 2, duration: 0.5, accent: 0.9}, // Ga♭
+                    {note: 0, duration: 2.0, accent: 1.1}, // Sa (resolve)
+                ]
+            }
+        };
+
+        // Tala definitions
+        const talas = {
+            teental: {
+                name: 'Teental',
+                beats: 16,
+                structure: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
+                divisions: [4, 4, 4, 4],
+                bols: ['Dha', 'Dhin', 'Dhin', 'Dha', 'Dha', 'Dhin', 'Dhin', 'Dha',
+                       'Dha', 'Tin', 'Tin', 'Ta', 'Ta', 'Dhin', 'Dhin', 'Dha'],
+                description: 'Most popular tala with 16 beats in 4 divisions'
+            },
+            jhaptaal: {
+                name: 'Jhaptaal',
+                beats: 10,
+                structure: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+                divisions: [2, 3, 2, 3],
+                bols: ['Dhi', 'Na', 'Dhi', 'Dhi', 'Na', 'Ti', 'Na', 'Dhi', 'Dhi', 'Na'],
+                description: '10 beats in 4 unequal divisions'
+            },
+            ektaal: {
+                name: 'Ektaal',
+                beats: 12,
+                structure: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+                divisions: [2, 2, 2, 2, 2, 2],
+                bols: ['Dhin', 'Dhin', 'Dha', 'Ge', 'Ti', 'Na', 'Ka', 'Ta', 'Dha', 'Ge', 'Dhin', 'Na'],
+                description: '12 beats in 6 divisions'
+            },
+            rupak: {
+                name: 'Rupak',
+                beats: 7,
+                structure: [1, 2, 3, 4, 5, 6, 7],
+                divisions: [3, 2, 2],
+                bols: ['Tin', 'Tin', 'Na', 'Dhi', 'Na', 'Dhi', 'Na'],
+                description: '7 beats in 3 divisions'
+            },
+            dadra: {
+                name: 'Dadra',
+                beats: 6,
+                structure: [1, 2, 3, 4, 5, 6],
+                divisions: [3, 3],
+                bols: ['Dha', 'Dhin', 'Na', 'Dha', 'Tin', 'Na'],
+                description: '6 beats in 2 divisions, light classical'
+            }
+        };
+
+        let currentRaga = 'yaman';
+        let currentTala = 'teental';
+        let isPlaying = false;
+        let currentBeat = 0;
+        let tempo = 80;
+        let intervalId = null;
+        let phraseIndex = 0;
+        let scheduledTimeouts = [];
+        let totalBeatsPlayed = 0;
+        let beatTrackingInterval = null;
+        let playbackStartTime = 0;
+        let metronomeEnabled = false;
+        let lastBeatPlayed = -1;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            updateRagaInfo();
+            updateTalaInfo();
+            renderTalaCycle();
+            renderKeyboard();
+        });
+
+        // Event listeners
+        document.getElementById('ragaSelect').addEventListener('change', (e) => {
+            currentRaga = e.target.value;
+            updateRagaInfo();
+            renderKeyboard();
+        });
+
+        document.getElementById('talaSelect').addEventListener('change', (e) => {
+            currentTala = e.target.value;
+            updateTalaInfo();
+            renderTalaCycle();
+        });
+
+        document.getElementById('tempoSlider').addEventListener('input', (e) => {
+            tempo = parseInt(e.target.value);
+            document.getElementById('tempoValue').textContent = `${tempo} BPM`;
+            if (isPlaying) {
+                stopPlayback();
+                startPlayback();
+            }
+        });
+
+        document.getElementById('playBtn').addEventListener('click', startPlayback);
+        document.getElementById('stopBtn').addEventListener('click', stopPlayback);
+
+        document.getElementById('metronomeBtn').addEventListener('click', () => {
+            metronomeEnabled = !metronomeEnabled;
+            const btn = document.getElementById('metronomeBtn');
+            if (metronomeEnabled) {
+                btn.textContent = '🔊 Metronome On';
+                btn.style.background = 'linear-gradient(135deg, #27ae60 0%, #229954 100%)';
+            } else {
+                btn.textContent = '🔇 Metronome Off';
+                btn.style.background = 'linear-gradient(135deg, #34495e 0%, #2c3e50 100%)';
+            }
+        });
+
+        function updateRagaInfo() {
+            const raga = ragas[currentRaga];
+            document.getElementById('ragaInfo').innerHTML = `
+                <strong>${raga.name}</strong><br>
+                Notes: ${raga.notes.join(' ')}<br>
+                ${raga.info}
+            `;
+        }
+
+        function updateTalaInfo() {
+            const tala = talas[currentTala];
+            document.getElementById('talaInfo').innerHTML = `
+                <strong>${tala.name}</strong><br>
+                ${tala.description}<br>
+                Divisions: ${tala.divisions.join(' + ')} = ${tala.beats} beats
+            `;
+        }
+
+        function renderTalaCycle() {
+            const tala = talas[currentTala];
+            const container = document.getElementById('talaCycle');
+            container.innerHTML = '';
+
+            tala.structure.forEach((beat, index) => {
+                const beatEl = document.createElement('div');
+                beatEl.className = 'beat';
+                if (beat === 1) beatEl.classList.add('sam');
+                beatEl.textContent = beat;
+                beatEl.dataset.index = index;
+                container.appendChild(beatEl);
+            });
+        }
+
+        function renderKeyboard() {
+            const raga = ragas[currentRaga];
+            const container = document.getElementById('notesKeyboard');
+            container.innerHTML = '';
+
+            raga.notes.forEach((note, index) => {
+                const noteBtn = document.createElement('button');
+                noteBtn.className = 'note-btn';
+                noteBtn.textContent = note;
+                noteBtn.addEventListener('click', () => playNote(index));
+                container.appendChild(noteBtn);
+            });
+        }
+
+        function playNote(noteIndex, duration = 0.5, accent = 1.0) {
+            const raga = ragas[currentRaga];
+            const frequency = raga.frequencies[noteIndex];
+
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
+
+            const baseVolume = 0.3 * accent;
+            gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+            gainNode.gain.linearRampToValueAtTime(baseVolume, audioContext.currentTime + 0.01);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + duration);
+
+            // Visual feedback
+            const noteButtons = document.querySelectorAll('.note-btn');
+            if (noteButtons[noteIndex]) {
+                noteButtons[noteIndex].classList.add('playing');
+                setTimeout(() => {
+                    noteButtons[noteIndex].classList.remove('playing');
+                }, duration * 1000);
+            }
+        }
+
+        function playMetronomeClick(isSam = false) {
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+
+            oscillator.type = 'square';
+            // Sam (beat 1) is higher pitch and louder
+            oscillator.frequency.setValueAtTime(isSam ? 1200 : 800, audioContext.currentTime);
+
+            const volume = isSam ? 0.15 : 0.08;
+            gainNode.gain.setValueAtTime(volume, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.05);
+
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.05);
+        }
+
+        function updateBeatDisplay() {
+            const beats = document.querySelectorAll('.beat');
+            beats.forEach((beat, index) => {
+                if (index === currentBeat) {
+                    beat.classList.add('active');
+                } else {
+                    beat.classList.remove('active');
+                }
+            });
+        }
+
+        function startPlayback() {
+            if (isPlaying) return;
+
+            isPlaying = true;
+            currentBeat = 0;
+            phraseIndex = 0;
+            totalBeatsPlayed = 0;
+            playbackStartTime = Date.now();
+            document.getElementById('playBtn').disabled = true;
+            document.getElementById('stopBtn').disabled = false;
+
+            // Clear any existing scheduled timeouts
+            scheduledTimeouts.forEach(timeout => clearTimeout(timeout));
+            scheduledTimeouts = [];
+
+            // Start continuous beat tracking for smooth visualization
+            const beatDuration = 60000 / tempo; // milliseconds per beat
+            beatTrackingInterval = setInterval(() => {
+                if (!isPlaying) return;
+
+                const elapsedTime = Date.now() - playbackStartTime;
+                const elapsedBeats = elapsedTime / beatDuration;
+                const tala = talas[currentTala];
+                currentBeat = Math.floor(elapsedBeats) % tala.beats;
+
+                // Play metronome click on beat changes
+                if (metronomeEnabled && currentBeat !== lastBeatPlayed) {
+                    playMetronomeClick(currentBeat === 0);
+                    lastBeatPlayed = currentBeat;
+                }
+
+                updateBeatDisplay();
+            }, 50); // Update every 50ms for smooth animation
+
+            playPhrase();
+        }
+
+        function playPhrase() {
+            if (!isPlaying) return;
+
+            const raga = ragas[currentRaga];
+            const tala = talas[currentTala];
+            const beatDuration = 60000 / tempo; // milliseconds per beat
+            const talaCycleDuration = tala.beats * beatDuration; // Duration of one tala cycle
+
+            let phraseTime = 0; // accumulated time in milliseconds
+
+            // Schedule notes from the phrase, repeating as needed to fill the tala cycle
+            for (let i = 0; phraseTime < talaCycleDuration; i++) {
+                const phraseNote = raga.phrases[i % raga.phrases.length];
+                const noteDuration = phraseNote.duration * beatDuration;
+
+                const timeout = setTimeout(() => {
+                    if (!isPlaying) return;
+                    // Play the note (if not a rest)
+                    if (phraseNote.note !== null) {
+                        const accent = phraseNote.accent || 1.0;
+                        const actualDuration = (noteDuration / 1000) * 0.9; // slightly shorter for articulation
+                        playNote(phraseNote.note, actualDuration, accent);
+                    }
+                }, phraseTime);
+
+                scheduledTimeouts.push(timeout);
+                phraseTime += noteDuration;
+            }
+
+            // Schedule the next phrase to start at exactly the next tala cycle
+            const timeout = setTimeout(() => {
+                playPhrase(); // Loop the phrase on the next sam
+            }, talaCycleDuration); // Restart after exactly one tala cycle
+
+            scheduledTimeouts.push(timeout);
+        }
+
+        function stopPlayback() {
+            if (!isPlaying) return;
+
+            isPlaying = false;
+
+            // Clear all scheduled timeouts
+            scheduledTimeouts.forEach(timeout => clearTimeout(timeout));
+            scheduledTimeouts = [];
+
+            // Clear beat tracking interval
+            if (beatTrackingInterval) {
+                clearInterval(beatTrackingInterval);
+                beatTrackingInterval = null;
+            }
+
+            currentBeat = 0;
+            phraseIndex = 0;
+            totalBeatsPlayed = 0;
+            lastBeatPlayed = -1;
+            updateBeatDisplay();
+
+            document.getElementById('playBtn').disabled = false;
+            document.getElementById('stopBtn').disabled = true;
+        }
+    </script>
+</body>
+</html>
