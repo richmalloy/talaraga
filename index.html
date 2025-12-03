@@ -341,7 +341,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>🎵 Raga & Tala Explorer</h1>
+        <h1>Raga & Tala Explorer</h1>
         <p class="subtitle">Explore the beauty of Indian Classical Music</p>
 
         <div class="controls">
@@ -375,10 +375,16 @@
             <div class="tempo-value" id="tempoValue">80 BPM</div>
         </div>
 
+        <div class="tempo-control">
+            <label for="volumeSlider">Volume</label>
+            <input type="range" id="volumeSlider" min="0" max="100" value="70" step="1">
+            <div class="tempo-value" id="volumeValue">70%</div>
+        </div>
+
         <div class="playback-controls">
-            <button id="playBtn">▶ Play Pattern</button>
-            <button id="stopBtn" disabled>⏹ Stop</button>
-            <button id="metronomeBtn" class="metronome-off">🔇 Metronome Off</button>
+            <button id="playBtn">Play Pattern</button>
+            <button id="stopBtn" disabled>Stop</button>
+            <button id="metronomeBtn" class="metronome-off">Metronome Off</button>
         </div>
 
         <div class="tala-display">
@@ -554,6 +560,7 @@
         let isPlaying = false;
         let currentBeat = 0;
         let tempo = 80;
+        let volume = 0.7;
         let intervalId = null;
         let phraseIndex = 0;
         let scheduledTimeouts = [];
@@ -593,6 +600,11 @@
             }
         });
 
+        document.getElementById('volumeSlider').addEventListener('input', (e) => {
+            volume = parseInt(e.target.value) / 100;
+            document.getElementById('volumeValue').textContent = `${e.target.value}%`;
+        });
+
         document.getElementById('playBtn').addEventListener('click', startPlayback);
         document.getElementById('stopBtn').addEventListener('click', stopPlayback);
 
@@ -600,11 +612,11 @@
             metronomeEnabled = !metronomeEnabled;
             const btn = document.getElementById('metronomeBtn');
             if (metronomeEnabled) {
-                btn.textContent = '🔊 Metronome On';
+                btn.textContent = 'Metronome On';
                 btn.classList.remove('metronome-off');
                 btn.classList.add('metronome-on');
             } else {
-                btn.textContent = '🔇 Metronome Off';
+                btn.textContent = 'Metronome Off';
                 btn.classList.remove('metronome-on');
                 btn.classList.add('metronome-off');
             }
@@ -670,7 +682,7 @@
             oscillator.type = 'sine';
             oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
 
-            const baseVolume = 0.3 * accent;
+            const baseVolume = 0.3 * accent * volume;
             gainNode.gain.setValueAtTime(0, audioContext.currentTime);
             gainNode.gain.linearRampToValueAtTime(baseVolume, audioContext.currentTime + 0.01);
             gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
@@ -699,8 +711,8 @@
             // Sam (beat 1) is higher pitch and louder
             oscillator.frequency.setValueAtTime(isSam ? 1200 : 800, audioContext.currentTime);
 
-            const volume = isSam ? 0.15 : 0.08;
-            gainNode.gain.setValueAtTime(volume, audioContext.currentTime);
+            const clickVolume = (isSam ? 0.15 : 0.08) * volume;
+            gainNode.gain.setValueAtTime(clickVolume, audioContext.currentTime);
             gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.05);
 
             oscillator.start(audioContext.currentTime);
